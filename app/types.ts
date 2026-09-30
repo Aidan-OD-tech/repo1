@@ -6,4 +6,10 @@ export type Bet = {
   createdAt: number;
 };
 
-export type CompletedBet = Bet & { actualMs: number; completed: boolean };
+export type QuoteState = {
+  status: "idle" | "loading" | "success" | "error";
+  quote: string;
+  author: string;
+};
+
+export type CompletedBet =Bet & { actualMs: number; completed: boolean };

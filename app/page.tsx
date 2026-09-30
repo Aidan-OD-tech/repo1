@@ -6,7 +6,8 @@ import CreateBet from "./components/CreateBet";
 import Home from "./components/Home";
 import Locked from "./components/Locked";
 import Result from "./components/Result";
-import type { Bet, CompletedBet } from "./types";
+import { fetchQuote } from "./quote";
+import type { Bet, CompletedBet, QuoteState } from "./types";
 
 type Screen = "home" | "create" | "locked" | "active" | "result";
 
@@ -16,6 +17,22 @@ export default function Page() {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [elapsedMs, setElapsedMs] = useState<number | null>(null);
   const [history, setHistory] = useState<CompletedBet[]>([]);
+
+  const [quoteState, setQuoteState] = useState<QuoteState>({
+    status: "idle",
+    quote: "",
+    author: "",
+  });
+
+  async function loadQuote() {
+    setQuoteState({ status: "loading", quote: "", author: "" });
+    try {
+      const data = await fetchQuote();
+      setQuoteState({ status: "success", quote: data.quote, author: data.author });
+    } catch {
+      setQuoteState({ status: "error", quote: "", author: "" });
+    }
+  }
 
   function handleLockIn(
     task: string,
@@ -30,6 +47,7 @@ export default function Page() {
       createdAt: Date.now(),
     });
     setScreen("locked");
+    loadQuote();
   }
 
   function handleSave(completed: boolean) {
@@ -52,6 +70,7 @@ export default function Page() {
     return (
       <Locked
         bet={currentBet}
+        quote={quoteState}
         onStart={() => {
           setStartTime(Date.now());
           setScreen("active");
