@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ActiveBet from "./components/ActiveBet";
 import CreateBet from "./components/CreateBet";
+import History from "./components/History";
 import Home from "./components/Home";
 import Locked from "./components/Locked";
 import Result from "./components/Result";
 import { fetchQuote } from "./quote";
 import type { Bet, CompletedBet, QuoteState } from "./types";
 
-type Screen = "home" | "create" | "locked" | "active" | "result";
+const STORAGE_KEY = "tinybet-history";
+
+type Screen = "home" | "create" | "locked" | "active" | "result" | "history";
 
 export default function Page() {
   const [screen, setScreen] = useState<Screen>("home");
@@ -17,6 +20,21 @@ export default function Page() {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [elapsedMs, setElapsedMs] = useState<number | null>(null);
   const [history, setHistory] = useState<CompletedBet[]>([]);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
+
+  useEffect(() => {
+    let saved: CompletedBet[] = [];
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const parsed: unknown = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(parsed)) saved = parsed;
+    } catch {
+      saved = [];
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage only exists in the browser, so it must be read after mount
+    setHistory(saved);
+    setHistoryLoaded(true);
+  }, []);
 
   const [quoteState, setQuoteState] = useState<QuoteState>({
     status: "idle",
@@ -53,8 +71,13 @@ export default function Page() {
   function handleSave(completed: boolean) {
     if (!currentBet || elapsedMs === null) return;
     const record: CompletedBet = { ...currentBet, actualMs: elapsedMs, completed };
-    setHistory((prev) => [record, ...prev]);
-    console.log("Saved result:", record);
+    const next = [record, ...history];
+    setHistory(next);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      // storage unavailable or full; the bet stays in memory for this session
+    }
     setStartTime(null);
     setElapsedMs(null);
     setScreen("home");
@@ -103,5 +126,16 @@ export default function Page() {
     );
   }
 
-  return <Home onMakeBet={() => setScreen("create")} />;
+  if (screen === "history") {
+    return <History history={history} onBack={() => setScreen("home")} />;
+  }
+
+  return (
+    <Home
+      history={history}
+      historyLoaded={historyLoaded}
+      onMakeBet={() => setScreen("create")}
+      onViewHistory={() => setScreen("history")}
+    />
+  );
 }
