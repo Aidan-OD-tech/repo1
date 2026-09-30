@@ -12,4 +12,4 @@ export type QuoteState = {
   author: string;
 };
 
-export type CompletedBet =Bet & { actualMs: number; completed: boolean };
+export type CompletedBet = Bet & { actualMs: number; completed: boolean };

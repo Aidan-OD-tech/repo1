@@ -18,7 +18,7 @@ export default function Home({
     <div className="min-h-screen bg-white text-zinc-900">
       <main className="mx-auto flex w-full max-w-2xl flex-col gap-10 px-8 py-24">
         <header className="flex flex-col gap-3">
-          <h1 className="text-4xl font-bold tracking-tight">Tiny Bet</h1>
+          <h1 className="text-4xl font-bold tracking-tight">Clocked</h1>
           <p className="text-lg text-zinc-600">How good is your judgment?</p>
           <div className="pt-3">
             <button
